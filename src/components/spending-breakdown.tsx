@@ -132,15 +132,15 @@ export function SpendingBreakdown({ months, targetMonthly }: { months: SpendingM
                     const pct = (amount / totalExpense) * 100
                     const color = CATEGORY_COLORS[cat] ?? "#71717a"
                     return (
-                      <div key={cat} className="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-white/[0.03] transition-colors">
+                      <div key={cat} className="flex items-center gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-2 sm:py-2.5 hover:bg-white/[0.03] transition-colors">
                         <div className="w-1.5 h-4 rounded-full flex-shrink-0" style={{ background: color }} />
-                        <span className="text-sm text-white/70 flex-1">{cat}</span>
-                        <div className="flex items-center gap-3">
-                          <div className="w-20 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.07)" }}>
+                        <span className="text-xs sm:text-sm text-white/70 flex-1 truncate">{cat}</span>
+                        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
+                          <div className="hidden xs:block w-14 sm:w-20 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.07)" }}>
                             <div className="h-full rounded-full" style={{ width: `${pct}%`, background: color, opacity: 0.7 }} />
                           </div>
-                          <span className="text-sm font-medium text-white/70 w-20 text-right">{formatCurrency(amount)}</span>
-                          <span className="text-xs text-white/30 w-8 text-right">{pct.toFixed(0)}%</span>
+                          <span className="text-xs sm:text-sm font-medium text-white/70 w-16 sm:w-20 text-right">{formatCurrency(amount)}</span>
+                          <span className="text-[10px] sm:text-xs text-white/30 w-6 sm:w-8 text-right">{pct.toFixed(0)}%</span>
                         </div>
                       </div>
                     )

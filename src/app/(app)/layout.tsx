@@ -1,17 +1,22 @@
 import { auth, signOut } from "@/auth"
 import { redirect } from "next/navigation"
-import { Nav } from "@/components/layout/nav"
+import { Nav, MobileNav } from "@/components/layout/nav"
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth()
   if (!session) redirect("/")
 
+  const signOutAction = async () => {
+    "use server"
+    await signOut({ redirectTo: "/" })
+  }
+
   return (
     <div className="relative flex min-h-screen overflow-hidden">
       <div className="bg-mesh" />
 
-      {/* Sidebar */}
-      <aside className="relative z-20 w-60 flex-shrink-0 flex flex-col">
+      {/* Sidebar — desktop only */}
+      <aside className="relative z-20 w-60 flex-shrink-0 flex-col hidden md:flex">
         <div
           className="absolute inset-0 border-r border-white/[0.07]"
           style={{
@@ -35,17 +40,17 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <span className="text-sm font-semibold text-white/90 tracking-tight">FIRE Tracker</span>
             </div>
           </div>
-          <Nav
-            onSignOut={async () => {
-              "use server"
-              await signOut({ redirectTo: "/" })
-            }}
-          />
+          <Nav onSignOut={signOutAction} />
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="relative z-10 flex-1 overflow-auto">{children}</main>
+      {/* Main — extra bottom padding on mobile for tab bar */}
+      <main className="relative z-10 flex-1 overflow-auto pb-20 md:pb-0">
+        {children}
+      </main>
+
+      {/* Bottom tab bar — mobile only */}
+      <MobileNav onSignOut={signOutAction} />
     </div>
   )
 }

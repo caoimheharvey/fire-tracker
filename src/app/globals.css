@@ -102,3 +102,13 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* iOS safe area insets for bottom tab bar */
+.pb-safe {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+/* Viewport height fix for mobile browsers */
+@supports (height: 100dvh) {
+  .min-h-screen { min-height: 100dvh; }
+}

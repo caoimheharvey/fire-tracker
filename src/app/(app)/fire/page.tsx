@@ -19,7 +19,7 @@ export default async function FirePage() {
     : 0
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-4xl">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-4xl">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-white">FIRE Goals</h1>
         <p className="text-sm text-white/40 mt-0.5">Configure your parameters. The projections will not flatter you.</p>
@@ -79,32 +79,60 @@ function ProjectionTable({ config, netWorth }: { config: FireConfig; netWorth: n
   const fiNumber = calculateFiNumber(config)
 
   return (
-    <div className="glass glow-card rounded-2xl overflow-hidden">
-      <div className="grid grid-cols-5 px-5 py-3 border-b border-white/[0.06]">
-        {["Scenario", "Real return", "FI number", "Years to FI", "Retire at"].map(h => (
-          <p key={h} className="text-xs font-medium text-white/30 uppercase tracking-wider">{h}</p>
-        ))}
-      </div>
-      {scenarios.map((s, i) => {
-        const proj = project(netWorth, 0, { ...config, expected_return: s.return, swr: s.swr })
-        return (
-          <div key={i} className={`grid grid-cols-5 px-5 py-4 ${i < scenarios.length - 1 ? "border-b border-white/[0.05]" : ""} ${i === 0 ? "bg-red-500/[0.03]" : ""}`}>
-            <div>
-              <p className={`text-sm font-semibold ${s.accent}`}>{s.label}</p>
-              <p className="text-xs text-white/25">{s.labelDetail}</p>
+    <>
+      {/* Mobile: stacked cards */}
+      <div className="flex flex-col gap-2 sm:hidden">
+        {scenarios.map((s, i) => {
+          const proj = project(netWorth, 0, { ...config, expected_return: s.return, swr: s.swr })
+          return (
+            <div key={i} className="glass glow-card rounded-2xl p-4 space-y-3" style={i === 0 ? { background: "rgba(239,68,68,0.04)" } : {}}>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className={`text-sm font-semibold ${s.accent}`}>{s.label}</p>
+                  <p className="text-xs text-white/25">{s.labelDetail}</p>
+                </div>
+                <p className={`text-xl font-bold ${s.accent}`}>
+                  {proj.years_to_fi_base === Infinity ? "∞" : `${proj.years_to_fi_base.toFixed(0)} yrs`}
+                </p>
+              </div>
+              <div className="grid grid-cols-3 gap-2 pt-1 border-t border-white/[0.06]">
+                <div><p className="text-[10px] text-white/30 uppercase tracking-wider">Return</p><p className="text-sm text-white/60">{(s.return * 100).toFixed(1)}%</p></div>
+                <div><p className="text-[10px] text-white/30 uppercase tracking-wider">FI number</p><p className="text-sm text-white/60">{formatCurrency(fiNumber)}</p></div>
+                <div><p className="text-[10px] text-white/30 uppercase tracking-wider">Retire at</p><p className="text-sm text-white/45">{proj.years_to_fi_base === Infinity ? "—" : `age ${proj.projected_retirement_age_base.toFixed(0)}`}</p></div>
+              </div>
             </div>
-            <p className="text-sm text-white/60 self-center">{(s.return * 100).toFixed(1)}%</p>
-            <p className="text-sm text-white/60 self-center">{formatCurrency(fiNumber)}</p>
-            <p className={`text-sm font-semibold self-center ${s.accent}`}>
-              {proj.years_to_fi_base === Infinity ? "∞" : `${proj.years_to_fi_base.toFixed(1)} yrs`}
-            </p>
-            <p className="text-sm text-white/45 self-center">
-              {proj.years_to_fi_base === Infinity ? "—" : `age ${proj.projected_retirement_age_base.toFixed(0)}`}
-            </p>
-          </div>
-        )
-      })}
-    </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden sm:block glass glow-card rounded-2xl overflow-hidden">
+        <div className="grid grid-cols-5 px-5 py-3 border-b border-white/[0.06]">
+          {["Scenario", "Real return", "FI number", "Years to FI", "Retire at"].map(h => (
+            <p key={h} className="text-xs font-medium text-white/30 uppercase tracking-wider">{h}</p>
+          ))}
+        </div>
+        {scenarios.map((s, i) => {
+          const proj = project(netWorth, 0, { ...config, expected_return: s.return, swr: s.swr })
+          return (
+            <div key={i} className={`grid grid-cols-5 px-5 py-4 ${i < scenarios.length - 1 ? "border-b border-white/[0.05]" : ""} ${i === 0 ? "bg-red-500/[0.03]" : ""}`}>
+              <div>
+                <p className={`text-sm font-semibold ${s.accent}`}>{s.label}</p>
+                <p className="text-xs text-white/25">{s.labelDetail}</p>
+              </div>
+              <p className="text-sm text-white/60 self-center">{(s.return * 100).toFixed(1)}%</p>
+              <p className="text-sm text-white/60 self-center">{formatCurrency(fiNumber)}</p>
+              <p className={`text-sm font-semibold self-center ${s.accent}`}>
+                {proj.years_to_fi_base === Infinity ? "∞" : `${proj.years_to_fi_base.toFixed(1)} yrs`}
+              </p>
+              <p className="text-sm text-white/45 self-center">
+                {proj.years_to_fi_base === Infinity ? "—" : `age ${proj.projected_retirement_age_base.toFixed(0)}`}
+              </p>
+            </div>
+          )
+        })}
+      </div>
+    </>
   )
 }
 

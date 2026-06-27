@@ -31,7 +31,7 @@ interface Props {
 
 export function FireVariantCards({ variants, currentNetWorth }: Props) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5 lg:grid-cols-3">
       {variants.map(v => {
         const info = FIRE_DESCRIPTIONS[v.type]
         const pct = Math.min((currentNetWorth / v.fi_number) * 100, 100)

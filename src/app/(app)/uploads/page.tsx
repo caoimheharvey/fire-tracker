@@ -28,7 +28,7 @@ export default async function UploadsPage() {
     .limit(50)
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-3xl">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-3xl">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-white">Uploads</h1>
         <p className="text-sm text-white/40 mt-0.5">IBKR screenshots and bank statements. Upload monthly to keep data current.</p>

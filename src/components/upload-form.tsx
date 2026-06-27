@@ -67,10 +67,10 @@ export function UploadForm() {
   }
 
   return (
-    <form onSubmit={submit} className="glass glow-card rounded-2xl p-6 space-y-5">
+    <form onSubmit={submit} className="glass glow-card rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
       <h2 className="text-sm font-semibold text-white/70">New Upload</h2>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
         <div className="space-y-1.5">
           <label className="block text-xs font-medium text-white/40">Type</label>
           <select

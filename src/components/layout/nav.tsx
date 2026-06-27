@@ -44,3 +44,45 @@ export function Nav({ onSignOut }: { onSignOut: () => void }) {
     </nav>
   )
 }
+
+export function MobileNav({ onSignOut }: { onSignOut: () => void }) {
+  const path = usePathname()
+  return (
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-30 flex md:hidden"
+      style={{
+        background: "rgba(8,8,15,0.85)",
+        backdropFilter: "blur(40px) saturate(180%)",
+        WebkitBackdropFilter: "blur(40px) saturate(180%)",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      <div className="flex w-full items-center justify-around px-2 pb-safe">
+        {links.map(({ href, label, icon: Icon }) => {
+          const active = path.startsWith(href)
+          return (
+            <Link
+              key={href}
+              href={href}
+              className="flex flex-col items-center gap-1 px-3 py-3 min-w-[60px]"
+            >
+              <Icon
+                className={cn("h-5 w-5 transition-colors", active ? "text-violet-400" : "text-white/35")}
+              />
+              <span className={cn("text-[10px] font-medium transition-colors", active ? "text-white/80" : "text-white/30")}>
+                {label.split(" ")[0]}
+              </span>
+            </Link>
+          )
+        })}
+        <button
+          onClick={onSignOut}
+          className="flex flex-col items-center gap-1 px-3 py-3 min-w-[60px]"
+        >
+          <LogOut className="h-5 w-5 text-white/25" />
+          <span className="text-[10px] font-medium text-white/25">Out</span>
+        </button>
+      </div>
+    </nav>
+  )
+}

@@ -55,7 +55,7 @@ export default async function DashboardPage() {
   const spendTrend = prevMonthSpend > 0 ? ((latestSpend - prevMonthSpend) / prevMonthSpend) * 100 : null
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-6xl">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6 max-w-6xl">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -70,26 +70,26 @@ export default async function DashboardPage() {
       </div>
 
       {/* Hero: FI Progress */}
-      <div className="glass glow-card-purple rounded-2xl p-6 space-y-5">
-        <div className="flex items-start justify-between gap-4">
-          <div className="space-y-1">
+      <div className="glass glow-card-purple rounded-2xl p-4 sm:p-6 space-y-4 sm:space-y-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1 min-w-0">
             <p className="text-xs font-medium text-white/40 uppercase tracking-widest">Financial Independence</p>
-            <p className="text-4xl font-bold text-white tracking-tight">
+            <p className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
               {proj.percent_to_fi.toFixed(1)}
-              <span className="text-2xl text-white/40 font-semibold">%</span>
+              <span className="text-xl sm:text-2xl text-white/40 font-semibold">%</span>
             </p>
-            <p className="text-sm text-white/40">{formatCurrency(netWorth)} of {formatCurrency(fiNumber)}</p>
+            <p className="text-xs sm:text-sm text-white/40 truncate">{formatCurrency(netWorth)} of {formatCurrency(fiNumber)}</p>
           </div>
-          <div className="text-right space-y-1">
+          <div className="text-right space-y-1 flex-shrink-0">
             <p className="text-xs font-medium text-white/40 uppercase tracking-widest">Pessimistic ETA</p>
-            <p className="text-3xl font-bold text-white/90 tracking-tight">
+            <p className="text-2xl sm:text-3xl font-bold text-white/90 tracking-tight">
               {proj.years_to_fi_pessimistic === Infinity ? "∞" : proj.years_to_fi_pessimistic.toFixed(0)}
-              <span className="text-base text-white/40 font-normal ml-1">yrs</span>
+              <span className="text-sm sm:text-base text-white/40 font-normal ml-1">yrs</span>
             </p>
-            <p className="text-xs text-white/35">
+            <p className="text-xs text-white/35 max-w-[140px] sm:max-w-none leading-tight">
               {proj.years_to_fi_pessimistic === Infinity
                 ? "savings rate insufficient"
-                : `age ${(config.current_age + proj.years_to_fi_pessimistic).toFixed(0)} · base case age ${(config.current_age + proj.years_to_fi_base).toFixed(0)}`}
+                : `age ${(config.current_age + proj.years_to_fi_pessimistic).toFixed(0)} · base ${(config.current_age + proj.years_to_fi_base).toFixed(0)}`}
             </p>
           </div>
         </div>
@@ -114,7 +114,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Metrics */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         <MetricCard label="Net Worth" value={formatCurrency(netWorth)} detail="investments + cash" />
         <MetricCard
           label="This Month"
@@ -144,7 +144,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:gap-4 lg:grid-cols-2">
         <div className="glass glow-card rounded-2xl p-5">
           <p className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-4">Net Worth History</p>
           <NetWorthChart data={snapshots ?? []} fiNumber={fiNumber} />
@@ -178,14 +178,14 @@ function MetricCard({ label, value, detail, warn, badge, badgeWarn }: {
   label: string; value: string; detail: string; warn?: boolean; badge?: string; badgeWarn?: boolean
 }) {
   return (
-    <div className={`glass glow-card rounded-2xl p-4 space-y-2 transition-colors ${warn ? "border-red-500/20" : ""}`}
+    <div className={`glass glow-card rounded-2xl p-3 sm:p-4 space-y-1.5 sm:space-y-2 transition-colors ${warn ? "border-red-500/20" : ""}`}
       style={warn ? { background: "rgba(239,68,68,0.04)" } : {}}>
-      <p className="text-xs font-medium text-white/35 uppercase tracking-widest">{label}</p>
-      <p className={`text-xl font-bold tracking-tight ${warn ? "text-red-400" : "text-white"}`}>{value}</p>
-      <div className="flex items-center gap-2 min-h-[16px]">
-        <p className="text-xs text-white/28 truncate flex-1">{detail}</p>
+      <p className="text-[10px] sm:text-xs font-medium text-white/35 uppercase tracking-widest leading-tight">{label}</p>
+      <p className={`text-lg sm:text-xl font-bold tracking-tight ${warn ? "text-red-400" : "text-white"}`}>{value}</p>
+      <div className="flex items-start gap-1 min-h-[14px] flex-wrap">
+        <p className="text-[10px] sm:text-xs text-white/28 flex-1 leading-tight">{detail}</p>
         {badge && (
-          <span className={`flex-shrink-0 text-xs px-1.5 py-0.5 rounded-md font-medium ${badgeWarn ? "bg-red-500/15 text-red-400" : "bg-emerald-500/15 text-emerald-400"}`}>
+          <span className={`flex-shrink-0 text-[10px] px-1.5 py-0.5 rounded-md font-medium ${badgeWarn ? "bg-red-500/15 text-red-400" : "bg-emerald-500/15 text-emerald-400"}`}>
             {badge}
           </span>
         )}
