@@ -74,10 +74,26 @@ export function FireVariantCards({ variants, currentNetWorth }: Props) {
               <p className="text-xs text-white/35 leading-relaxed">{info.detail}</p>
             </div>
 
-            {/* FI number */}
-            <div>
-              <p className="text-lg font-bold text-white tracking-tight">{formatCurrency(v.fi_number)}</p>
-              <p className="text-xs text-white/35">{formatCurrency(v.annual_expenses)}/yr spend</p>
+            {/* Retirement age — headline */}
+            <div className="py-1">
+              {achieved ? (
+                <div>
+                  <p className="text-2xl font-bold tracking-tight" style={{ color: "#6ee7b7" }}>Now</p>
+                  <p className="text-xs text-white/35 mt-0.5">already achieved</p>
+                </div>
+              ) : v.years_to_fi === Infinity ? (
+                <div>
+                  <p className="text-2xl font-bold text-red-400 tracking-tight">∞</p>
+                  <p className="text-xs text-red-400/60 mt-0.5">savings rate too low</p>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex items-baseline gap-1.5">
+                    <p className="text-2xl font-bold text-white tracking-tight">Age {v.retirement_age.toFixed(0)}</p>
+                  </div>
+                  <p className="text-xs text-white/35 mt-0.5">{v.years_to_fi.toFixed(1)} yrs away</p>
+                </div>
+              )}
             </div>
 
             {/* Progress */}
@@ -92,23 +108,7 @@ export function FireVariantCards({ variants, currentNetWorth }: Props) {
                   }}
                 />
               </div>
-              <p className="text-xs text-white/30">{pct.toFixed(0)}% funded</p>
-            </div>
-
-            {/* Timeline */}
-            <div className="pt-1 border-t border-white/[0.06]">
-              {achieved ? (
-                <p className="text-xs font-medium text-emerald-400">Already there</p>
-              ) : v.years_to_fi === Infinity ? (
-                <p className="text-xs font-medium text-red-400">Savings rate too low</p>
-              ) : (
-                <div className="flex items-baseline justify-between">
-                  <p className="text-sm font-semibold text-white/80">
-                    {v.years_to_fi.toFixed(1)} <span className="text-xs font-normal text-white/35">yrs</span>
-                  </p>
-                  <p className="text-xs text-white/35">age {v.retirement_age.toFixed(0)}</p>
-                </div>
-              )}
+              <p className="text-xs text-white/30">{pct.toFixed(0)}% funded · {formatCurrency(v.fi_number)} target</p>
             </div>
           </div>
         )
