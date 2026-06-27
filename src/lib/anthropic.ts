@@ -50,8 +50,10 @@ Use 0 for any values you cannot find. No markdown, no explanation, just JSON.`,
 
 const CSV_CHUNK_ROWS = 200 // rows per Claude call
 
+const CATEGORIES = "Groceries, Dining, Transport, Housing, Utilities, Subscriptions, Healthcare, Clothing, Entertainment, Travel, Investments, Transfers, Other"
+
 async function parseCsvChunk(header: string, rows: string[]): Promise<
-  Array<{ date: string; description: string; amount: number; is_income: boolean }>
+  Array<{ date: string; description: string; amount: number; is_income: boolean; category: string }>
 > {
   const chunk = [header, ...rows].join("\n")
   const response = await anthropic.messages.create({
@@ -60,16 +62,18 @@ async function parseCsvChunk(header: string, rows: string[]): Promise<
     messages: [
       {
         role: "user",
-        content: `Parse this bank statement CSV chunk and extract ALL transactions. Return ONLY valid JSON array (no wrapper object):
+        content: `Parse this bank statement CSV chunk and extract ALL transactions. Return ONLY a valid JSON array:
 [
-  {"date": "YYYY-MM-DD", "description": "...", "amount": <positive number>, "is_income": <true if money in, false if expense>}
+  {"date": "YYYY-MM-DD", "description": "...", "amount": <positive number>, "is_income": <true if money in, false if expense>, "category": "..."}
 ]
 
 Rules:
 - amount is always positive; use is_income to indicate direction
+- is_income transactions get category "Income"
+- Expense category must be one of: ${CATEGORIES}
 - Skip internal transfers between own accounts if identifiable
 - Normalise descriptions (remove reference numbers, trim whitespace)
-- Include EVERY transaction row — do not summarise or skip any
+- Include EVERY transaction row — do not skip any
 
 CSV:
 ${chunk}`,
@@ -82,7 +86,7 @@ ${chunk}`,
 }
 
 export async function parseBankStatementCSV(csvContent: string): Promise<{
-  transactions: Array<{ date: string; description: string; amount: number; is_income: boolean }>
+  transactions: Array<{ date: string; description: string; amount: number; is_income: boolean; category: string }>
   period_start?: string
   period_end?: string
 }> {

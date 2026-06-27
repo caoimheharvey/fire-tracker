@@ -4,7 +4,6 @@ import {
   parseIBKRScreenshot,
   parseBankStatementCSV,
   parseBankStatementImage,
-  categoriseTransactions,
 } from "@/lib/anthropic"
 import { NextRequest, NextResponse } from "next/server"
 import { firstOfMonth } from "@/lib/utils"
@@ -100,28 +99,20 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         throw new Error("No transactions found in file. Make sure the file contains transaction data.")
       }
 
-      // Categorise expenses
-      const expenses = parsed.transactions.filter(t => !t.is_income)
-      const categories = expenses.length > 0
-        ? await categoriseTransactions(expenses.map(t => ({ description: t.description, amount: t.amount })))
-        : []
-
-      // Derive month from each transaction's actual date (YYYY-MM-01)
-      // so multi-month statements are bucketed correctly
+      // Categories are now returned inline by parseBankStatementCSV — no separate call needed
       function txMonth(date: string): string {
         const d = new Date(date + "T12:00:00")
         if (isNaN(d.getTime())) return periodMonth
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`
       }
 
-      let expenseIdx = 0
       const txRows = parsed.transactions.map(t => ({
         user_email: email,
         month: txMonth(t.date),
         date: t.date,
         description: t.description,
         amount: t.amount,
-        category: t.is_income ? "Income" : (categories[expenseIdx++] ?? "Other"),
+        category: t.category ?? (t.is_income ? "Income" : "Other"),
         is_income: t.is_income,
         source_upload_id: id,
       }))
