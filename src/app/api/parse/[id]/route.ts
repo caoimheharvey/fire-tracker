@@ -8,7 +8,7 @@ import {
 } from "@/lib/anthropic"
 import { NextRequest, NextResponse } from "next/server"
 import { firstOfMonth } from "@/lib/utils"
-// Give Vercel 60s — Anthropic vision calls can be slow
+// Chunked CSV parsing runs multiple Claude calls in parallel — keep within Hobby plan 60s limit
 export const maxDuration = 60
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

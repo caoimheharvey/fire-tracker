@@ -48,39 +48,72 @@ Use 0 for any values you cannot find. No markdown, no explanation, just JSON.`,
   return JSON.parse(extractJson(text))
 }
 
+const CSV_CHUNK_ROWS = 200 // rows per Claude call
+
+async function parseCsvChunk(header: string, rows: string[]): Promise<
+  Array<{ date: string; description: string; amount: number; is_income: boolean }>
+> {
+  const chunk = [header, ...rows].join("\n")
+  const response = await anthropic.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 8192,
+    messages: [
+      {
+        role: "user",
+        content: `Parse this bank statement CSV chunk and extract ALL transactions. Return ONLY valid JSON array (no wrapper object):
+[
+  {"date": "YYYY-MM-DD", "description": "...", "amount": <positive number>, "is_income": <true if money in, false if expense>}
+]
+
+Rules:
+- amount is always positive; use is_income to indicate direction
+- Skip internal transfers between own accounts if identifiable
+- Normalise descriptions (remove reference numbers, trim whitespace)
+- Include EVERY transaction row — do not summarise or skip any
+
+CSV:
+${chunk}`,
+      },
+    ],
+  })
+  const text = (response.content[0] as { type: string; text: string }).text.trim()
+  const parsed = JSON.parse(extractJson(text))
+  return Array.isArray(parsed) ? parsed : parsed.transactions ?? []
+}
+
 export async function parseBankStatementCSV(csvContent: string): Promise<{
   transactions: Array<{ date: string; description: string; amount: number; is_income: boolean }>
   period_start?: string
   period_end?: string
 }> {
-  const response = await anthropic.messages.create({
-    model: "claude-haiku-4-5-20251001",
-    max_tokens: 4096,
-    messages: [
-      {
-        role: "user",
-        content: `Parse this bank statement CSV and extract transactions. Return ONLY valid JSON:
-{
-  "transactions": [
-    {"date": "YYYY-MM-DD", "description": "...", "amount": <positive number>, "is_income": <true if money in, false if expense>}
-  ],
-  "period_start": "YYYY-MM-DD or null",
-  "period_end": "YYYY-MM-DD or null"
-}
+  const lines = csvContent.split("\n").filter(l => l.trim())
+  if (lines.length === 0) return { transactions: [] }
 
-Rules:
-- amount is always positive; use is_income to indicate direction
-- Skip internal transfers between own accounts if you can identify them
-- Normalise descriptions (remove reference numbers, trim whitespace)
+  // Detect header row (first line)
+  const header = lines[0]
+  const dataRows = lines.slice(1)
 
-CSV content:
-${csvContent.slice(0, 8000)}`,
-      },
-    ],
-  })
+  // Chunk and process in parallel batches
+  const chunks: string[][] = []
+  for (let i = 0; i < dataRows.length; i += CSV_CHUNK_ROWS) {
+    chunks.push(dataRows.slice(i, i + CSV_CHUNK_ROWS))
+  }
 
-  const text = (response.content[0] as { type: string; text: string }).text.trim()
-  return JSON.parse(extractJson(text))
+  // Process up to 5 chunks in parallel, then the next 5, etc.
+  const PARALLEL = 5
+  const allTransactions: Array<{ date: string; description: string; amount: number; is_income: boolean }> = []
+  for (let i = 0; i < chunks.length; i += PARALLEL) {
+    const batch = chunks.slice(i, i + PARALLEL)
+    const results = await Promise.all(batch.map(rows => parseCsvChunk(header, rows)))
+    results.forEach(txs => allTransactions.push(...txs))
+  }
+
+  const dates = allTransactions.map(t => t.date).filter(Boolean).sort()
+  return {
+    transactions: allTransactions,
+    period_start: dates[0],
+    period_end: dates[dates.length - 1],
+  }
 }
 
 export async function parseBankStatementImage(base64Image: string, mediaType: string): Promise<{
