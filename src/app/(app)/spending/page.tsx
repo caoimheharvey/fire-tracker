@@ -12,8 +12,11 @@ export default async function SpendingPage() {
   ])
 
   return (
-    <div className="p-8 space-y-6 max-w-4xl">
-      <h1 className="text-2xl font-bold">Spending</h1>
+    <div className="p-6 lg:p-8 space-y-6 max-w-5xl">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight text-white">Spending</h1>
+        <p className="text-sm text-white/40 mt-0.5">Where your money is actually going.</p>
+      </div>
       <SpendingBreakdown months={months ?? []} targetMonthly={(config?.annual_expenses_target ?? 0) / 12} />
     </div>
   )

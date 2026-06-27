@@ -32,22 +32,26 @@ export function UploadForm() {
       const data = await res.json()
 
       if (data.duplicate) {
-        setMessage({ text: `Duplicate: this file was already uploaded (status: ${data.parse_status})`, type: "warn" })
+        setMessage({ text: `Already uploaded — status: ${data.parse_status}. No duplicate created.`, type: "warn" })
         return
       }
 
       if (data.period_conflict) {
-        setMessage({ text: `Note: another ${uploadType} already exists for this month. Uploaded anyway.`, type: "warn" })
+        setMessage({ text: `Note: another ${uploadType} exists for this month. Uploaded anyway — check for overlap.`, type: "warn" })
+      } else if (autoParse) {
+        setMessage({ text: "Uploaded. Parsing…", type: "success" })
       } else {
         setMessage({ text: "Uploaded successfully.", type: "success" })
       }
 
       if (autoParse && data.upload_id) {
-        setMessage({ text: "Parsing…", type: "success" })
         const parseRes = await fetch(`/api/parse/${data.upload_id}`, { method: "POST" })
         const parseData = await parseRes.json()
         if (parseData.ok) {
-          setMessage({ text: `Parsed successfully.${parseData.transaction_count ? ` ${parseData.transaction_count} transactions extracted.` : ""}`, type: "success" })
+          setMessage({
+            text: `Parsed.${parseData.transaction_count ? ` ${parseData.transaction_count} transactions extracted.` : " Net worth snapshot saved."}`,
+            type: "success",
+          })
         } else {
           setMessage({ text: `Parse failed: ${parseData.error}`, type: "error" })
         }
@@ -56,59 +60,94 @@ export function UploadForm() {
       router.refresh()
       if (fileRef.current) fileRef.current.value = ""
     } catch (err) {
-      setMessage({ text: `Upload failed: ${err instanceof Error ? err.message : "unknown error"}`, type: "error" })
+      setMessage({ text: `Failed: ${err instanceof Error ? err.message : "unknown error"}`, type: "error" })
     } finally {
       setUploading(false)
     }
   }
 
   return (
-    <form onSubmit={submit} className="rounded-lg border border-zinc-800 p-5 space-y-4">
-      <h2 className="text-sm font-semibold text-zinc-300">New Upload</h2>
+    <form onSubmit={submit} className="glass glow-card rounded-2xl p-6 space-y-5">
+      <h2 className="text-sm font-semibold text-white/70">New Upload</h2>
+
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">Type</label>
-          <select value={uploadType} onChange={e => setUploadType(e.target.value)} className="w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm">
+        <div className="space-y-1.5">
+          <label className="block text-xs font-medium text-white/40">Type</label>
+          <select
+            value={uploadType}
+            onChange={e => setUploadType(e.target.value)}
+            className="w-full rounded-xl border border-white/[0.1] bg-white/[0.04] px-3 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all"
+          >
             <option value="bank_statement">Bank Statement</option>
             <option value="ibkr_screenshot">IBKR Screenshot</option>
             <option value="other">Other</option>
           </select>
         </div>
-        <div>
-          <label className="block text-xs font-medium text-zinc-400 mb-1">Period (month)</label>
+        <div className="space-y-1.5">
+          <label className="block text-xs font-medium text-white/40">Period</label>
           <input
             type="month"
             value={periodMonth.slice(0, 7)}
             onChange={e => setPeriodMonth(e.target.value + "-01")}
-            className="w-full rounded-md border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm"
+            className="w-full rounded-xl border border-white/[0.1] bg-white/[0.04] px-3 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all"
           />
         </div>
       </div>
-      <div>
-        <label className="block text-xs font-medium text-zinc-400 mb-1">File</label>
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".csv,.xlsx,.xls,.png,.jpg,.jpeg,.webp"
-          required
-          className="w-full text-sm text-zinc-400 file:mr-3 file:rounded file:border-0 file:bg-zinc-800 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-zinc-300 hover:file:bg-zinc-700"
-        />
-        <p className="text-xs text-zinc-600 mt-1">Accepted: CSV, Excel, PNG, JPG, WEBP</p>
+
+      <div className="space-y-1.5">
+        <label className="block text-xs font-medium text-white/40">File</label>
+        <div
+          className="rounded-xl border border-dashed border-white/[0.12] p-4 text-center cursor-pointer hover:border-white/[0.2] hover:bg-white/[0.03] transition-all"
+          onClick={() => fileRef.current?.click()}
+        >
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".csv,.xlsx,.xls,.png,.jpg,.jpeg,.webp"
+            required
+            className="hidden"
+          />
+          <p className="text-sm text-white/40">Click to select file</p>
+          <p className="text-xs text-white/20 mt-1">CSV, Excel, PNG, JPG, WEBP</p>
+        </div>
       </div>
-      <label className="flex items-center gap-2 text-sm text-zinc-400 cursor-pointer">
-        <input type="checkbox" checked={autoParse} onChange={e => setAutoParse(e.target.checked)} className="rounded" />
-        Automatically parse after upload
+
+      <label className="flex items-center gap-2.5 cursor-pointer group">
+        <div
+          className={`w-9 h-5 rounded-full relative transition-all duration-200 ${autoParse ? "" : "opacity-40"}`}
+          style={{ background: autoParse ? "linear-gradient(135deg, #7c3aed, #3b82f6)" : "rgba(255,255,255,0.12)" }}
+          onClick={() => setAutoParse(v => !v)}
+        >
+          <div
+            className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all duration-200 shadow-sm ${autoParse ? "left-4" : "left-0.5"}`}
+          />
+        </div>
+        <span className="text-sm text-white/50 group-hover:text-white/70 transition-colors">Auto-parse after upload</span>
       </label>
+
       {message && (
-        <div className={`rounded-lg px-3 py-2 text-sm ${
-          message.type === "success" ? "bg-zinc-900 text-zinc-300" :
-          message.type === "warn" ? "bg-amber-950/30 text-amber-300" :
-          "bg-red-950/30 text-red-300"
-        }`}>
+        <div
+          className="rounded-xl px-4 py-3 text-sm"
+          style={{
+            background: message.type === "error"
+              ? "rgba(239,68,68,0.12)"
+              : message.type === "warn"
+              ? "rgba(245,158,11,0.12)"
+              : "rgba(16,185,129,0.12)",
+            border: `1px solid ${message.type === "error" ? "rgba(239,68,68,0.25)" : message.type === "warn" ? "rgba(245,158,11,0.25)" : "rgba(16,185,129,0.25)"}`,
+            color: message.type === "error" ? "#fca5a5" : message.type === "warn" ? "#fcd34d" : "#6ee7b7",
+          }}
+        >
           {message.text}
         </div>
       )}
-      <button type="submit" disabled={uploading} className="rounded-lg bg-zinc-700 px-5 py-2 text-sm font-medium hover:bg-zinc-600 disabled:opacity-50 transition-colors">
+
+      <button
+        type="submit"
+        disabled={uploading}
+        className="flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50 transition-all duration-200"
+        style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.6), rgba(59,130,246,0.5))", border: "1px solid rgba(255,255,255,0.12)" }}
+      >
         {uploading ? "Uploading…" : "Upload"}
       </button>
     </form>
