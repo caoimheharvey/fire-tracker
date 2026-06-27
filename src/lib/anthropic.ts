@@ -121,7 +121,7 @@ export async function parseBankStatementCSV(csvContent: string): Promise<{
 }
 
 export async function parseBankStatementImage(base64Image: string, mediaType: string): Promise<{
-  transactions: Array<{ date: string; description: string; amount: number; is_income: boolean }>
+  transactions: Array<{ date: string; description: string; amount: number; is_income: boolean; category: string }>
   period_start?: string
   period_end?: string
 }> {
@@ -141,12 +141,13 @@ export async function parseBankStatementImage(base64Image: string, mediaType: st
             text: `Parse this bank statement image and extract all transactions. Return ONLY valid JSON:
 {
   "transactions": [
-    {"date": "YYYY-MM-DD", "description": "...", "amount": <positive number>, "is_income": <true if money in, false if expense>}
+    {"date": "YYYY-MM-DD", "description": "...", "amount": <positive number>, "is_income": <true if money in, false if expense>, "category": "..."}
   ],
   "period_start": "YYYY-MM-DD or null",
   "period_end": "YYYY-MM-DD or null"
 }
-amount is always a positive number; use is_income to indicate direction. No markdown, just JSON.`,
+amount is always positive; use is_income to indicate direction.
+is_income transactions get category "Income". Expense category must be one of: ${CATEGORIES}. No markdown, just JSON.`,
           },
         ],
       },
