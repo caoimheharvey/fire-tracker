@@ -4,6 +4,13 @@ export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 })
 
+function extractJson(raw: string): string {
+  const stripped = raw.trim()
+  // Strip markdown code blocks: ```json ... ``` or ``` ... ```
+  const match = stripped.match(/^```(?:json)?\s*([\s\S]*?)```\s*$/)
+  return match ? match[1].trim() : stripped
+}
+
 export async function parseIBKRScreenshot(base64Image: string, mediaType: string): Promise<{
   portfolio_value: number
   cash: number
@@ -38,7 +45,7 @@ Use 0 for any values you cannot find. No markdown, no explanation, just JSON.`,
   })
 
   const text = (response.content[0] as { type: string; text: string }).text.trim()
-  return JSON.parse(text)
+  return JSON.parse(extractJson(text))
 }
 
 export async function parseBankStatementCSV(csvContent: string): Promise<{
@@ -73,7 +80,7 @@ ${csvContent.slice(0, 8000)}`,
   })
 
   const text = (response.content[0] as { type: string; text: string }).text.trim()
-  return JSON.parse(text)
+  return JSON.parse(extractJson(text))
 }
 
 export async function parseBankStatementImage(base64Image: string, mediaType: string): Promise<{
@@ -110,7 +117,7 @@ amount is always a positive number; use is_income to indicate direction. No mark
   })
 
   const text = (response.content[0] as { type: string; text: string }).text.trim()
-  return JSON.parse(text)
+  return JSON.parse(extractJson(text))
 }
 
 export async function categoriseTransactions(
@@ -133,7 +140,7 @@ Return ONLY a JSON array of category strings, one per transaction, in the same o
   })
 
   const text = (response.content[0] as { type: string; text: string }).text.trim()
-  return JSON.parse(text)
+  return JSON.parse(extractJson(text))
 }
 
 export async function generateFireNarrative(data: {
@@ -181,5 +188,5 @@ Return ONLY valid JSON: {"narrative": "...", "spending_critique": "..."}`,
   })
 
   const text = (response.content[0] as { type: string; text: string }).text.trim()
-  return JSON.parse(text)
+  return JSON.parse(extractJson(text))
 }
