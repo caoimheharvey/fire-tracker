@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { supabaseAdmin } from "@/lib/supabase"
 import { UploadForm } from "@/components/upload-form"
 import { ParseButton } from "@/components/parse-button"
+import { DeleteUploadButton } from "@/components/delete-upload-button"
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   done: { bg: "rgba(16,185,129,0.12)", text: "#6ee7b7", label: "Parsed" },
@@ -71,11 +72,12 @@ export default async function UploadsPage() {
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <span className="text-xs font-medium px-2 py-0.5 rounded-md" style={{ background: status.bg, color: status.text }}>
                       {status.label}
                     </span>
                     {(u.parse_status === "pending" || u.parse_status === "failed") && <ParseButton uploadId={u.id} />}
+                    <DeleteUploadButton uploadId={u.id} />
                   </div>
                 </div>
               )
