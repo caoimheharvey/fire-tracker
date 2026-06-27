@@ -106,10 +106,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         ? await categoriseTransactions(expenses.map(t => ({ description: t.description, amount: t.amount })))
         : []
 
+      // Derive month from each transaction's actual date (YYYY-MM-01)
+      // so multi-month statements are bucketed correctly
+      function txMonth(date: string): string {
+        const d = new Date(date + "T12:00:00")
+        if (isNaN(d.getTime())) return periodMonth
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-01`
+      }
+
       let expenseIdx = 0
       const txRows = parsed.transactions.map(t => ({
         user_email: email,
-        month: periodMonth,
+        month: txMonth(t.date),
         date: t.date,
         description: t.description,
         amount: t.amount,
@@ -123,13 +131,22 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
         if (txErr) throw new Error(`Failed to save transactions: ${txErr.message}`)
       }
 
-      const totalSpend = expenses.reduce((s, t) => s + t.amount, 0)
-      await supabaseAdmin.from("spending_months").upsert({
-        user_email: email,
-        month: periodMonth,
-        total_spend: totalSpend,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "user_email,month" })
+      // Aggregate spending per month and upsert each month separately
+      const spendByMonth: Record<string, number> = {}
+      parsed.transactions.filter(t => !t.is_income).forEach(t => {
+        const m = txMonth(t.date)
+        spendByMonth[m] = (spendByMonth[m] ?? 0) + t.amount
+      })
+      await Promise.all(
+        Object.entries(spendByMonth).map(([month, total_spend]) =>
+          supabaseAdmin.from("spending_months").upsert({
+            user_email: email,
+            month,
+            total_spend,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "user_email,month" })
+        )
+      )
 
       await supabaseAdmin.from("uploads").update({ parse_status: "done", parse_result: { transaction_count: txRows.length, period_start: parsed.period_start, period_end: parsed.period_end } }).eq("id", id)
       return NextResponse.json({ ok: true, transaction_count: txRows.length })
