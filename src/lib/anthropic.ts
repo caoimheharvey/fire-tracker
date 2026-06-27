@@ -105,7 +105,7 @@ export async function parseBankStatementCSV(csvContent: string): Promise<{
 
   // Process up to 5 chunks in parallel, then the next 5, etc.
   const PARALLEL = 5
-  const allTransactions: Array<{ date: string; description: string; amount: number; is_income: boolean }> = []
+  const allTransactions: Array<{ date: string; description: string; amount: number; is_income: boolean; category: string }> = []
   for (let i = 0; i < chunks.length; i += PARALLEL) {
     const batch = chunks.slice(i, i + PARALLEL)
     const results = await Promise.all(batch.map(rows => parseCsvChunk(header, rows)))
