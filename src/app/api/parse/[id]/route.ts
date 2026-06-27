@@ -8,8 +8,6 @@ import {
 } from "@/lib/anthropic"
 import { NextRequest, NextResponse } from "next/server"
 import { firstOfMonth } from "@/lib/utils"
-import * as XLSX from "xlsx"
-
 // Give Vercel 60s — Anthropic vision calls can be slow
 export const maxDuration = 60
 
@@ -78,7 +76,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       let parsed: Awaited<ReturnType<typeof parseBankStatementCSV>>
 
       if (["xlsx", "xls"].includes(ext)) {
-        // Convert Excel → CSV string using xlsx library
+        // Dynamic import to avoid bundling issues on Vercel cold start
+        const XLSX = await import("xlsx")
         const workbook = XLSX.read(bytes, { type: "array" })
         const sheet = workbook.Sheets[workbook.SheetNames[0]]
         const csv = XLSX.utils.sheet_to_csv(sheet)
