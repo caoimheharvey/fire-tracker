@@ -46,7 +46,13 @@ export function calculateYearsToFiWithTarget(
   const r = returnRate
   if (r === 0) return Math.max(0, (targetFiNumber - currentNetWorth) / Math.max(annualSavings, 1))
 
-  let lo = 0, hi = 200
+  // Check if the target is even reachable — with positive return, wealth grows without limit,
+  // but if savings are near zero and starting NW is tiny this can take centuries
+  const maxYears = 200
+  const projectedAtMax = currentNetWorth * Math.pow(1 + r, maxYears) + annualSavings * (Math.pow(1 + r, maxYears) - 1) / r
+  if (projectedAtMax < targetFiNumber) return Infinity
+
+  let lo = 0, hi = maxYears
   for (let i = 0; i < 200; i++) {
     const mid = (lo + hi) / 2
     const projected = currentNetWorth * Math.pow(1 + r, mid) + annualSavings * (Math.pow(1 + r, mid) - 1) / r
