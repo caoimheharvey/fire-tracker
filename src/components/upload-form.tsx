@@ -85,15 +85,26 @@ export function UploadForm() {
             <option value="other">Other</option>
           </select>
         </div>
-        <div className="space-y-1.5">
-          <label className="block text-xs font-medium text-white/40">Period</label>
-          <input
-            type="month"
-            value={periodMonth.slice(0, 7)}
-            onChange={e => setPeriodMonth(e.target.value + "-01")}
-            className="w-full rounded-xl border border-white/[0.1] bg-white/[0.04] px-3 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all"
-          />
-        </div>
+        {uploadType !== "bank_statement" ? (
+          <div className="space-y-1.5">
+            <label className="block text-xs font-medium text-white/40">
+              Period <span className="text-white/25 normal-case font-normal">— month this snapshot covers</span>
+            </label>
+            <input
+              type="month"
+              value={periodMonth.slice(0, 7)}
+              onChange={e => setPeriodMonth(e.target.value + "-01")}
+              required
+              className="w-full rounded-xl border border-white/[0.1] bg-white/[0.04] px-3 py-2.5 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-all"
+            />
+          </div>
+        ) : (
+          <div className="space-y-1.5 flex flex-col justify-end">
+            <p className="text-xs text-white/25 pb-2.5 leading-relaxed">
+              Period auto-detected from transaction dates — supports multi-month statements.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="space-y-1.5">
