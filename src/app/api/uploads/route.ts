@@ -45,10 +45,13 @@ export async function POST(req: NextRequest) {
   }
 
   // Upload to Supabase Storage
-  const storagePath = `${email}/${uploadType}/${periodMonth ?? "unknown"}/${Date.now()}-${file.name}`
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_")
+  const storagePath = `${email}/${uploadType}/${periodMonth ?? "unknown"}/${Date.now()}-${safeName}`
+  // Infer content type from extension when browser doesn't provide one
+  const contentType = file.type || inferContentType(file.name)
   const { error: storageErr } = await supabaseAdmin.storage
     .from("uploads")
-    .upload(storagePath, bytes, { contentType: file.type, upsert: false })
+    .upload(storagePath, bytes, { contentType, upsert: false })
 
   if (storageErr) {
     return NextResponse.json({ error: storageErr.message }, { status: 500 })
@@ -71,6 +74,20 @@ export async function POST(req: NextRequest) {
   if (dbErr) return NextResponse.json({ error: dbErr.message }, { status: 500 })
 
   return NextResponse.json({ upload_id: upload.id, period_conflict: periodConflict })
+}
+
+function inferContentType(filename: string): string {
+  const ext = filename.split(".").pop()?.toLowerCase()
+  const map: Record<string, string> = {
+    csv: "text/csv",
+    xlsx: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    xls: "application/vnd.ms-excel",
+    png: "image/png",
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    webp: "image/webp",
+  }
+  return map[ext ?? ""] ?? "application/octet-stream"
 }
 
 export async function GET(req: NextRequest) {

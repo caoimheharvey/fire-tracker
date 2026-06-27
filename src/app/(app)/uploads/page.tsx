@@ -65,12 +65,17 @@ export default async function UploadsPage() {
                     <p className="text-xs text-white/30">
                       {u.period_month ? u.period_month.slice(0, 7) : "no period"} · {new Date(u.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}
                     </p>
+                    {u.parse_status === "failed" && u.parse_error && (
+                      <p className="text-xs mt-1 leading-relaxed" style={{ color: "#fca5a5" }}>
+                        {u.parse_error}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-3 flex-shrink-0">
                     <span className="text-xs font-medium px-2 py-0.5 rounded-md" style={{ background: status.bg, color: status.text }}>
                       {status.label}
                     </span>
-                    {u.parse_status === "pending" && <ParseButton uploadId={u.id} />}
+                    {(u.parse_status === "pending" || u.parse_status === "failed") && <ParseButton uploadId={u.id} />}
                   </div>
                 </div>
               )

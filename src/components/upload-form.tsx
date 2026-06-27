@@ -6,6 +6,7 @@ export function UploadForm() {
   const router = useRouter()
   const fileRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<string | null>(null)
   const [message, setMessage] = useState<{ text: string; type: "success" | "warn" | "error" } | null>(null)
   const [uploadType, setUploadType] = useState("bank_statement")
   const [periodMonth, setPeriodMonth] = useState(() => {
@@ -59,6 +60,7 @@ export function UploadForm() {
 
       router.refresh()
       if (fileRef.current) fileRef.current.value = ""
+      setSelectedFile(null)
     } catch (err) {
       setMessage({ text: `Failed: ${err instanceof Error ? err.message : "unknown error"}`, type: "error" })
     } finally {
@@ -106,8 +108,13 @@ export function UploadForm() {
             accept=".csv,.xlsx,.xls,.png,.jpg,.jpeg,.webp"
             required
             className="hidden"
+            onChange={e => setSelectedFile(e.target.files?.[0]?.name ?? null)}
           />
-          <p className="text-sm text-white/40">Click to select file</p>
+          {selectedFile ? (
+            <p className="text-sm text-white/70 font-medium">{selectedFile}</p>
+          ) : (
+            <p className="text-sm text-white/40">Tap to select file</p>
+          )}
           <p className="text-xs text-white/20 mt-1">CSV, Excel, PNG, JPG, WEBP</p>
         </div>
       </div>
