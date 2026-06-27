@@ -87,6 +87,9 @@ create table fire_reports (
   unique(user_email, report_month)
 );
 
+-- Deduplication constraint on transactions
+create unique index on transactions(user_email, date, description, amount, is_income);
+
 -- Indexes
 create index on transactions(user_email, month);
 create index on net_worth_snapshots(user_email, snapshot_month);

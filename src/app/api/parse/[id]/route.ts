@@ -127,7 +127,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       }))
 
       if (txRows.length > 0) {
-        const { error: txErr } = await supabaseAdmin.from("transactions").insert(txRows)
+        const { error: txErr } = await supabaseAdmin
+          .from("transactions")
+          .upsert(txRows, { onConflict: "user_email,date,description,amount,is_income", ignoreDuplicates: true })
         if (txErr) throw new Error(`Failed to save transactions: ${txErr.message}`)
       }
 
