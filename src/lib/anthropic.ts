@@ -5,10 +5,19 @@ export const anthropic = new Anthropic({
 })
 
 function extractJson(raw: string): string {
-  const stripped = raw.trim()
-  // Strip markdown code blocks: ```json ... ``` or ``` ... ```
-  const match = stripped.match(/^```(?:json)?\s*([\s\S]*?)```\s*$/)
-  return match ? match[1].trim() : stripped
+  const s = raw.trim()
+  // Strip markdown code blocks first
+  const fenced = s.match(/```(?:json)?\s*([\s\S]*?)```/)
+  if (fenced) return fenced[1].trim()
+  // Find the first [ or { and the last ] or }
+  const arrStart = s.indexOf("[")
+  const objStart = s.indexOf("{")
+  if (arrStart === -1 && objStart === -1) return s
+  const isArr = arrStart !== -1 && (objStart === -1 || arrStart < objStart)
+  const start = isArr ? arrStart : objStart
+  const end = isArr ? s.lastIndexOf("]") : s.lastIndexOf("}")
+  if (end === -1) return s
+  return s.slice(start, end + 1)
 }
 
 export async function parseIBKRScreenshot(base64Image: string, mediaType: string): Promise<{
